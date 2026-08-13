@@ -1326,6 +1326,17 @@ process.stdin.on("end", () => {
     expect(runners).toContain("|| vars.OD_CI_RUNNER_MODE");
   });
 
+  it("[P1] bootstraps the resolver on a hosted runner when control fallback is enabled", async () => {
+    const workflow = await readFile(ciWorkflowPath, "utf8");
+    const runners = sectionBetween(workflow, "  runners:", "  scopes:");
+
+    // The resolver job must not resolve to the self-hosted control label when the
+    // fallback is on, or it can never run to emit the hosted profile.
+    expect(runners).toContain("contains(fromJSON(");
+    expect(runners).toContain("vars.OD_CI_CONTROL_FALLBACK))");
+    expect(runners).toContain("&& 'ubuntu-24.04'");
+  });
+
   it("[P1] pins ShellCheck for actionlint across runner profiles", async () => {
     const workflow = await readFile(ciWorkflowPath, "utf8");
     const staticGate = sectionBetween(workflow, "  static_gate:", "  preflight:");

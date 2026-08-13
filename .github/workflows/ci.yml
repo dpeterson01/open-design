@@ -32,11 +32,14 @@ jobs:
   runners:
     name: Resolve runner profiles
     # Resolve on the Nexu ARC fleet for trusted branches, but preserve the
-    # hosted bootstrap path for external forks and explicit economic mode.
+    # hosted bootstrap path for external forks, explicit economic mode, and the
+    # control fallback: when the self-hosted control pool is down, this resolver
+    # job itself must run on a hosted runner or it can never emit the fallback.
     runs-on: >-
       ${{ ((github.event_name == 'pull_request'
         && github.event.pull_request.head.repo.full_name != github.repository)
-        || vars.OD_CI_RUNNER_MODE == 'economic')
+        || vars.OD_CI_RUNNER_MODE == 'economic'
+        || contains(fromJSON('["1","true","yes","on","hosted"]'), vars.OD_CI_CONTROL_FALLBACK))
         && 'ubuntu-24.04'
         || 'nexu-runners-small' }}
     outputs:
